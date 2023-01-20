@@ -3,7 +3,9 @@
     windows_subsystem = "windows"
 )]
 
-fn has_valid_country_code(iban: &str) -> bool  {
+
+
+ fn has_valid_country_code(iban: &str) -> bool  {
     if iban.len() < 2 {
         return false;
     }
@@ -49,10 +51,7 @@ impl Serialize for IbanVO {
     }
 }
 
-
-
-
-#[tauri::command]
+#[tauri::command] 
 fn validate_iban(iban: &str) -> IbanVO {
     if !has_valid_country_code(iban) {
         return IbanVO {
@@ -86,4 +85,16 @@ fn main() {
         .invoke_handler(tauri::generate_handler![validate_iban])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+
+// Tests: Placing unit tests in the same file is the idiomatic way of doing it in rust
+#[cfg(test)] // Do not include this in the executable
+mod tests {   
+    use super::*; // Brings in all methods in this file in the tests scope
+
+    #[test]
+    fn should_return_true() {
+        assert_eq!(has_valid_country_code("DE"), true);
+    }
 }
