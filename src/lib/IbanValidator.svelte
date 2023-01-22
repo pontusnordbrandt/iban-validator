@@ -13,6 +13,7 @@ interface IbanResult {
 const greet = async () => {
   // invoke greet function on backend side (src-tauri/src/main.rs)
   ibanResult = await invoke("validate_iban", { iban: ibanInput });
+  console.log(ibanResult)
 }
 
 // Whenever iban variable is reassigned, greet function is called
