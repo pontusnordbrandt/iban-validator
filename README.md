@@ -13,3 +13,9 @@ To compile program into executable: npm run tauri build
 
 ## Run tests
 run: "cargo test" inside /src-tauri folder
+
+## Tests against these rules:
+1. Check that the total IBAN length is correct as per the country. If not, the IBAN is invalid
+2. Move the four initial characters to the end of the string
+3. Replace each letter in the string with two digits, thereby expanding the string, where A = 10, B = 11, ..., Z = 35
+4. Interpret the string as a decimal integer and compute the remainder of that number on division by 97 
