@@ -3,6 +3,5 @@
 </script>
 
 <main class="container">
-  <h1>Validate IBAN App!</h1>
     <IbanValidator />
 </main>
