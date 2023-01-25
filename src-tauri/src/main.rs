@@ -67,7 +67,6 @@ fn get_iban_vo_from_str(iban: &str) -> IbanVO {
     // Has valid country code
     iban_vo.is_valid_country = country_codes_and_length.get(country_code).is_some();
 
-    // Is iban correct length
     let country_length = country_codes_and_length.get(country_code);
     iban_vo.is_correct_length = country_length == Some(&iban.len());
 
@@ -130,14 +129,43 @@ mod tests {
 
     #[test]
     fn test_valid_iban() {
-        let iban = "DE89370400440532013000";
-        let expected = IbanVO {
-            iban: String::from(iban),
+        // Numbers taken from www.iban.com/structure
+        // It did not work for the IBAN for Burundi, for some reason the IBAN length for that country is listed as 27, but the example account has 28 digits
+        // Burundi	BI	27	BI43220001131012345678912345
+
+        let iban1 = "BH02CITI00001077181611";
+        let iban2 = "DJ2110002010010409943020008";
+        let iban3 = "SV43ACAT00000000000000123123";
+        let iban4 = "GT20AGRO00000000001234567890";
+        
+        let expected1 = IbanVO {
+            iban: String::from(iban1),
             is_valid_country: true,
             is_correct_length: true,
             is_divisible_by_97: true,
         };
-        assert_eq!(get_iban_vo_from_str(iban), expected);
+        let expected2 = IbanVO {
+            iban: String::from(iban2),
+            is_valid_country: true,
+            is_correct_length: true,
+            is_divisible_by_97: true,
+        };
+        let expected3 = IbanVO {
+            iban: String::from(iban3),
+            is_valid_country: true,
+            is_correct_length: true,
+            is_divisible_by_97: true,
+        };
+        let expected4 = IbanVO {
+            iban: String::from(iban4),
+            is_valid_country: true,
+            is_correct_length: true,
+            is_divisible_by_97: true,
+        };
+        assert_eq!(get_iban_vo_from_str(iban1), expected1);
+        assert_eq!(get_iban_vo_from_str(iban2), expected2);
+        assert_eq!(get_iban_vo_from_str(iban3), expected3);
+        assert_eq!(get_iban_vo_from_str(iban4), expected4);
     }
 
     #[test]
@@ -154,7 +182,7 @@ mod tests {
 
     #[test]
     fn test_incorrect_length() {
-        let iban = "DE8937040044053201300044";
+        let iban = "AT4832000000123234245864";
         let expected_output = IbanVO {
             iban: String::from(iban),
             is_valid_country: true,
