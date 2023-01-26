@@ -41,7 +41,10 @@
   async function validateIban(ibanStr: string) {
     console.log('validateIBan')
     // Don't include numbers that have a length of less than 10, as it's probably a typo;
-    const ibanNumbers = ibanStr.split(',').filter(n => n.length > 10)
+    const ibanNumbers = ibanStr
+      .split(',')
+      .filter(n => n.length > 10)
+      .map(n => n.replace(/\s/g, ""));
     if (ibanNumbers.length) {
       ibanResult = await invoke("validate_iban", { ibanNumbers });
     } else {
