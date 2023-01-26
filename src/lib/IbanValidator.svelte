@@ -1,31 +1,77 @@
 <script lang="ts">
   import { invoke } from "@tauri-apps/api/tauri"
+    import { onMount } from "svelte";
   import {
     CheckCircleOutlined,
-    CloseCircleFilled
+    CloseCircleFilled,
+    FileAddOutlined
   } from 'svelte-ant-design-icons';
     
   interface IbanResult { 
     iban: string;
+    isAlphanumeric: boolean;
     isValidCountry: boolean;
     isCorrectLength: boolean;
     isDivisibleBy97: boolean;
   }
 
-  let ibanInput = "DE89370400440532013000,DE89370400440532013000";
+  let ibanInput = "";
   let ibanResult: IbanResult[] = []
+  let files: FileList;
+  let errorMsg = "";
+  
+  let inputFieldRef: any;
 
-  async function validateIban() {
-    ibanResult = await invoke("validate_iban", { iban_numbers: ibanInput.split(',').length === 1 ? [ibanInput] : ibanInput.split(',') });
+  onMount(() => {
+    inputFieldRef.focus()
+  })
+
+  async function readTextFile(e) {
+    const [file] = files;
+    if (!file) return; 
+    errorMsg = "";
+    if (file.type !== 'text/plain') {
+      errorMsg = `${file.type} is not accepted as a file type.`;
+      return;
+    }
+    validateIban(await file.text());
+  }
+
+
+  async function validateIban(ibanStr: string) {
+    console.log('validateIBan')
+    // Don't include numbers that have a length of less than 10, as it's probably a typo;
+    const ibanNumbers = ibanStr.split(',').filter(n => n.length > 10)
+    if (ibanNumbers.length) {
+      ibanResult = await invoke("validate_iban", { ibanNumbers });
+    } else {
+      ibanResult = []
+    }
   } 
 
 
-  $: ibanInput, ibanInput && validateIban();
+  $: ibanInput, validateIban(ibanInput);
 </script>
 
 <main>
-  <input id="greet-input" placeholder="Enter one iban, or multiple separated by comma..." bind:value={ibanInput} />
-  {#each ibanResult as { iban, isValidCountry, isCorrectLength, isDivisibleBy97 }}
+  <div class="sheet">
+  <input bind:this={inputFieldRef} class="text-input" id="greet-input" placeholder="Enter one iban, or multiple separated by comma..." bind:value={ibanInput} />
+  <p>Or Select a .txt file with comma separated values...</p>
+  {#if errorMsg}
+    <p class="error-text">{errorMsg}</p>
+  {/if}
+  
+  
+  <input
+    class="center"
+    accept="text/txt"
+    bind:files
+    on:change={readTextFile}
+    name="iban-file"
+    type="file"
+  />
+</div>
+  {#each ibanResult as { iban, isAlphanumeric, isValidCountry, isCorrectLength, isDivisibleBy97 }}
   <table class="table">
     <thead>
       <tr>
@@ -33,6 +79,14 @@
       </tr>
     </thead>
     <tbody>
+      <tr>
+        <p>Is IBAN alphanumeric?</p>
+        {#if isAlphanumeric}
+          <CheckCircleOutlined color="#22c55e"/>
+        {:else}
+          <CloseCircleFilled color="#ef4444"/>
+        {/if}
+      </tr>
       <tr>
         <p>Is Country Code Valid?</p>
         {#if isValidCountry}
@@ -81,10 +135,20 @@
     box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
   }
 
+  .center {
+    margin: auto;
+    display: flex;
+    justify-content: center;
+  }
 
   .title {
-      color: black;
-    }
+    color: black;
+  }
+
+  .error-text {
+    font-size: small;
+    color: red;
+  }
 
   tr {
     line-height: 3px;
@@ -93,5 +157,36 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+  }
+
+  .sheet {
+    border-radius: 8px;
+    border: 1px solid transparent;
+    font-size: 1em;
+    font-weight: 500;
+    font-family: inherit;
+    color: #0f0f0f;
+    background-color: #ffffff;
+    transition: border-color 0.25s;
+    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
+    outline: none;
+    text-align:center;
+    width: 80%;
+    padding: 10px 5px;
+  }
+
+  .text-input {
+    border-radius: 8px;
+    border: 1px solid transparent;
+    font-size: 1em;
+    font-weight: 500;
+    font-family: inherit;
+    color: #0f0f0f;
+    background-color: #ffffff;
+    transition: border-color 0.25s;
+    outline: none;
+    text-align:center;
+    width: 80%;
+    padding: 10px 5px;
   }
 </style>
