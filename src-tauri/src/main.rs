@@ -10,6 +10,7 @@ mod country_data;
 #[derive(PartialEq, Debug)]
 struct IbanVO {
     iban: String,
+    is_alphanumeric: bool,
     is_valid_country: bool,
     is_correct_length: bool,
     is_divisible_by_97: bool
@@ -23,10 +24,17 @@ impl Serialize for IbanVO {
         let mut state = serializer.serialize_struct("IbanVO", 2)?;
         state.serialize_field("iban", &self.iban)?;
         state.serialize_field("isValidCountry", &self.is_valid_country)?;
+        state.serialize_field("isAlphanumeric", &self.is_alphanumeric)?;
         state.serialize_field("isCorrectLength", &self.is_correct_length)?;
         state.serialize_field("isDivisibleBy97", &self.is_divisible_by_97)?;
         state.end()
     }
+}
+
+fn is_alphanumeric(iban: &str) -> bool {
+    iban.chars().all(|c| {
+        c.is_alphanumeric()
+    })
 }
 
 
@@ -48,6 +56,7 @@ fn divide_by_97(iban: &str) -> bool {
 fn get_iban_vo_from_str(iban: &str) -> IbanVO {
     let mut iban_vo = IbanVO {
         iban: String::from(iban),
+        is_alphanumeric: false,
         is_valid_country: false,
         is_correct_length: false,
         is_divisible_by_97: false,
@@ -57,7 +66,12 @@ fn get_iban_vo_from_str(iban: &str) -> IbanVO {
         // Sanity check so program won't crash in case the string length is less 2
         return iban_vo;
     }
-     
+     let is_iban_alphanumeric = is_alphanumeric(&iban);
+    if !is_iban_alphanumeric {
+        return iban_vo;
+    } else {
+        iban_vo.is_alphanumeric = true;
+    }
     // Get country code from iban string
     let country_code: &str = &iban[0..2];
 
@@ -140,24 +154,28 @@ mod tests {
         
         let expected1 = IbanVO {
             iban: String::from(iban1),
+            is_alphanumeric: true,
             is_valid_country: true,
             is_correct_length: true,
             is_divisible_by_97: true,
         };
         let expected2 = IbanVO {
             iban: String::from(iban2),
+            is_alphanumeric: true,
             is_valid_country: true,
             is_correct_length: true,
             is_divisible_by_97: true,
         };
         let expected3 = IbanVO {
             iban: String::from(iban3),
+            is_alphanumeric: true,
             is_valid_country: true,
             is_correct_length: true,
             is_divisible_by_97: true,
         };
         let expected4 = IbanVO {
             iban: String::from(iban4),
+            is_alphanumeric: true,
             is_valid_country: true,
             is_correct_length: true,
             is_divisible_by_97: true,
@@ -173,6 +191,7 @@ mod tests {
         let iban = "DE89370400440532013001";
         let expected_output = IbanVO {
             iban: String::from(iban),
+            is_alphanumeric: true,
             is_valid_country: true,
             is_correct_length: true,
             is_divisible_by_97: false,
@@ -181,10 +200,23 @@ mod tests {
     }
 
     #[test]
+    fn test_is_alphanumeric() {
+        let num1 = "LKSDJFLKJHLKJ39872389476";
+        assert_eq!(is_alphanumeric(num1), true);
+        let num2 = "ASDÖLKölsdgjlknqåeptoilkbxöcbjewrjiqopwer923874013658971";
+        assert_eq!(is_alphanumeric(num2), true);
+        let num3 = "ABC_";
+        assert_eq!(is_alphanumeric(num3), false);
+        let num4 = "ABC;";
+        assert_eq!(is_alphanumeric(num4), false);
+    }
+
+    #[test]
     fn test_incorrect_length() {
         let iban = "AT4832000000123234245864";
         let expected_output = IbanVO {
             iban: String::from(iban),
+            is_alphanumeric: true,
             is_valid_country: true,
             is_correct_length: false,
             is_divisible_by_97: false,
@@ -197,6 +229,7 @@ mod tests {
         let iban = "XX89370400440532013000";
         let expected_output = IbanVO {
             iban: String::from(iban),
+            is_alphanumeric: true,
             is_valid_country: false,
             is_correct_length: false,
             is_divisible_by_97: false,
