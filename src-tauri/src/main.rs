@@ -143,47 +143,47 @@ mod tests {
 
     #[test]
     fn test_valid_iban() {
-        // Numbers taken from www.iban.com/structure
-        // It did not work for the IBAN for Burundi, for some reason the IBAN length for that country is listed as 27, but the example account has 28 digits
-        // Burundi	BI	27	BI43220001131012345678912345
-
         let iban1 = "BH02CITI00001077181611";
         let iban2 = "DJ2110002010010409943020008";
         let iban3 = "SV43ACAT00000000000000123123";
         let iban4 = "GT20AGRO00000000001234567890";
-        
-        let expected1 = IbanVO {
+        let with_non_alphanumeric_char = "!GT20AGRO00000000001234567890";
+
+        assert_eq!(get_iban_vo_from_str(iban1), IbanVO {
             iban: String::from(iban1),
             is_alphanumeric: true,
             is_valid_country: true,
             is_correct_length: true,
             is_divisible_by_97: true,
-        };
-        let expected2 = IbanVO {
+        });
+        assert_eq!(get_iban_vo_from_str(iban2), IbanVO {
             iban: String::from(iban2),
             is_alphanumeric: true,
             is_valid_country: true,
             is_correct_length: true,
             is_divisible_by_97: true,
-        };
-        let expected3 = IbanVO {
+        });
+        assert_eq!(get_iban_vo_from_str(iban3), IbanVO {
             iban: String::from(iban3),
             is_alphanumeric: true,
             is_valid_country: true,
             is_correct_length: true,
             is_divisible_by_97: true,
-        };
-        let expected4 = IbanVO {
+        });
+        assert_eq!(get_iban_vo_from_str(iban4), IbanVO {
             iban: String::from(iban4),
             is_alphanumeric: true,
             is_valid_country: true,
             is_correct_length: true,
             is_divisible_by_97: true,
-        };
-        assert_eq!(get_iban_vo_from_str(iban1), expected1);
-        assert_eq!(get_iban_vo_from_str(iban2), expected2);
-        assert_eq!(get_iban_vo_from_str(iban3), expected3);
-        assert_eq!(get_iban_vo_from_str(iban4), expected4);
+        });
+        assert_eq!(get_iban_vo_from_str(with_non_alphanumeric_char), IbanVO {
+            iban: String::from(with_non_alphanumeric_char),
+            is_alphanumeric: false,
+            is_valid_country: false,
+            is_correct_length: false,
+            is_divisible_by_97: false,
+        });
     }
 
     #[test]
